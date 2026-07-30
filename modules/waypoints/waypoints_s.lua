@@ -41,11 +41,6 @@ function SKServerWaypoint.Remove(sid)
         TriggerClientEvent('streetkings:waypoints:client:remove', tonumber(pid), cid)
     end
 
-    local players = getTargetPlayers(entry.target)
-    for _, pid in ipairs(players) do
-        TriggerClientEvent('streetkings:waypoints:client:remove', tonumber(pid), sid)
-    end
-
     serverWaypoints[sid] = nil
 end
 
