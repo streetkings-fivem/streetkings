@@ -335,8 +335,8 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: clamp(0.75rem, 1.125vw, 0.94rem);
+  font-family: var(--sk-font-condensed);
+  font-size: clamp(0.78rem, 1.15vw, 0.97rem);
   line-height: 1;
   color: var(--sk-color-spray);
   background: transparent;
@@ -344,7 +344,7 @@
   cursor: pointer;
   padding: 0;
   transition: opacity 0.15s ease;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
 }
 
 .phone-app-back:hover { opacity: 0.7; }
@@ -366,11 +366,12 @@
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
-  font-family: system-ui, -apple-system, sans-serif;
-  font-size: clamp(0.81rem, 1.25vw, 1.03rem);
+  font-family: var(--sk-font-condensed);
+  font-size: clamp(0.88rem, 1.35vw, 1.12rem);
   font-weight: 600;
+  text-transform: uppercase;
   color: rgba(255, 255, 255, 0.9);
-  letter-spacing: 0.04em;
+  letter-spacing: 0.08em;
 }
 
 .phone-app-body {
