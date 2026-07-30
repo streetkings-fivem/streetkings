@@ -81,7 +81,7 @@
         ? 'Next unlock: Lv. ' + item.nextUnlock.level + ' ' + escapeHtml(item.nextUnlock.optionName)
         : 'Fully unlocked';
 
-      html += '<div class="phone-vehicles-mod-card">'
+      html += '<div class="phone-vehicles-mod-card" data-mod-name="' + escapeHtml(String(item.modName).toLowerCase()) + '">'
         + '<div class="phone-vehicles-mod-top">'
         + '<span class="phone-vehicles-mod-name">' + escapeHtml(item.modName) + '</span>'
         + '<span class="phone-vehicles-mod-count">' + item.unlockedCount + ' / ' + item.totalCount + '</span>'
@@ -232,6 +232,11 @@
       + '</div>'
       + '<div class="phone-vehicles-dashboard">'
       + '<div class="phone-vehicles-main-col">'
+      + '<div class="phone-vehicles-search-wrap">'
+      + '<svg class="phone-vehicles-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>'
+      + '<input type="text" class="phone-vehicles-search" placeholder="Search parts" aria-label="Search parts" autocomplete="off" />'
+      + '<span class="phone-vehicles-search-empty" hidden>No matching parts</span>'
+      + '</div>'
       + '<div class="phone-vehicles-section">'
       + '<div class="phone-vehicles-section-head">'
       + '<span class="phone-vehicles-section-title">Visual Parts</span>'
@@ -287,6 +292,28 @@
     renderPanel();
   }
 
+  function filterParts(query) {
+    if (!els.panel) return;
+    var q = (query || '').trim().toLowerCase();
+    var cards = els.panel.querySelectorAll('.phone-vehicles-mod-card');
+    for (var i = 0; i < cards.length; i++) {
+      var name = cards[i].getAttribute('data-mod-name') || '';
+      cards[i].classList.toggle('is-filtered-out', q !== '' && name.indexOf(q) === -1);
+    }
+
+    var grids = els.panel.querySelectorAll('.phone-vehicles-mod-grid');
+    var anyVisible = false;
+    for (var g = 0; g < grids.length; g++) {
+      var visible = grids[g].querySelectorAll('.phone-vehicles-mod-card:not(.is-filtered-out)').length;
+      var section = grids[g].closest('.phone-vehicles-section');
+      if (section) section.classList.toggle('is-filtered-out', q !== '' && visible === 0);
+      if (visible > 0) anyVisible = true;
+    }
+
+    var empty = els.panel.querySelector('.phone-vehicles-search-empty');
+    if (empty) empty.hidden = !(q !== '' && !anyVisible);
+  }
+
   function loadVehicles() {
     if (!els.list || !els.panel) return;
 
@@ -324,6 +351,14 @@
         var vehicleId = button.getAttribute('data-vehicle-id');
         if (!vehicleId || vehicleId === state.selectedVehicleId) return;
         selectVehicle(vehicleId);
+      });
+    }
+
+    if (els.panel) {
+      els.panel.addEventListener('input', function (event) {
+        if (event.target && event.target.classList.contains('phone-vehicles-search')) {
+          filterParts(event.target.value);
+        }
       });
     }
   });
