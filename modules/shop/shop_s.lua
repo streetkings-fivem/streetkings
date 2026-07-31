@@ -1,3 +1,17 @@
+--- Record shop cash spend for stats + add-on hooks (cumulative quests, etc.).
+---@param source integer
+---@param amount number
+---@param category 'performance'|'visual'|'other'|nil
+local function recordShopCashSpent(source, amount, category)
+    local price = math.floor(tonumber(amount) or 0)
+    if price <= 0 then return end
+    if category ~= 'performance' and category ~= 'visual' then
+        category = 'other'
+    end
+    SKStats.increment(source, 'totalCashSpent', price)
+    TriggerEvent('streetkings:shop:cashSpent', source, price, category)
+end
+
 lib.callback.register('streetkings:shop:getBalance', function(source)
     return SKSaves.read(source, 'economy.cash')
 end)
@@ -185,7 +199,7 @@ lib.callback.register('streetkings:shop:purchaseColor', function(source, slot, r
 
     SKSaves.write(source, 'economy.cash', document.economy.cash)
     SKSaves.write(source, 'garage.vehicles.' .. vehicleId .. '.data', entry.data)
-    SKStats.increment(source, 'totalCashSpent', SKShopShared.COLOR_PRICE)
+    recordShopCashSpent(source, SKShopShared.COLOR_PRICE, 'visual')
 
     return { ok = true, balance = document.economy.cash, color = entry.data.colors[slot] }
 end)
@@ -225,7 +239,7 @@ lib.callback.register('streetkings:shop:purchaseNeons', function(source, enabled
     SKSaves.write(source, 'economy.cash', document.economy.cash)
     SKSaves.write(source, 'garage.vehicles.' .. vehicleId .. '.data', entry.data)
     if price > 0 then
-        SKStats.increment(source, 'totalCashSpent', price)
+        recordShopCashSpent(source, price, 'visual')
     end
 
     return { ok = true, balance = document.economy.cash, neons = entry.data.neons }
@@ -282,7 +296,9 @@ lib.callback.register('streetkings:shop:purchaseMod', function(source, shopTypeK
 
     SKSaves.write(source, 'economy.cash', document.economy.cash)
     SKSaves.write(source, 'garage.vehicles.' .. vehicleId .. '.data', entry.data)
-    SKStats.increment(source, 'totalCashSpent', price)
+    local category = shopTypeKey == 'performance' and 'performance'
+        or (shopTypeKey == 'visual' and 'visual' or 'other')
+    recordShopCashSpent(source, price, category)
 
     return { ok = true, balance = document.economy.cash, price = price }
 end)
@@ -321,7 +337,7 @@ lib.callback.register('streetkings:shop:purchaseGearbox', function(source, gearb
     SKSaves.write(source, 'economy.cash', document.economy.cash)
     SKSaves.write(source, 'garage.vehicles.' .. vehicleId .. '.data', entry.data)
     if price > 0 then
-        SKStats.increment(source, 'totalCashSpent', price)
+        recordShopCashSpent(source, price, 'performance')
     end
 
     return { ok = true, balance = document.economy.cash }
@@ -364,7 +380,7 @@ lib.callback.register('streetkings:shop:purchaseNitrous', function(source, nitro
     SKSaves.write(source, 'economy.cash', document.economy.cash)
     SKSaves.write(source, 'garage.vehicles.' .. vehicleId .. '.data', entry.data)
     if price > 0 then
-        SKStats.increment(source, 'totalCashSpent', price)
+        recordShopCashSpent(source, price, 'performance')
     end
 
     return { ok = true, balance = document.economy.cash }
