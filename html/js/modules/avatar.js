@@ -149,8 +149,14 @@
   }
 
   function renderStepper(parent, config) {
+    var sliderMin = typeof config.min === 'number' ? config.min
+      : typeof config.editMin === 'number' ? config.editMin : 0;
+    var sliderMax = typeof config.max === 'number' ? config.max
+      : typeof config.editMax === 'number' ? config.editMax : null;
+    var useSlider = sliderMax !== null && sliderMax > sliderMin && !config.disabled;
+
     var row = document.createElement('div');
-    row.className = 'sk-avatar-stepper';
+    row.className = useSlider ? 'sk-avatar-stepper sk-avatar-stepper--slider' : 'sk-avatar-stepper';
 
     var label = document.createElement('span');
     label.className = 'sk-avatar-stepper-label';
@@ -204,12 +210,9 @@
       valueWrap.appendChild(editor);
     }
 
-    var controls = document.createElement('div');
-    controls.className = 'sk-avatar-stepper-controls';
-
     var prev = document.createElement('button');
     prev.type = 'button';
-    prev.className = 'sk-avatar-mini-btn';
+    prev.className = 'sk-avatar-mini-btn sk-avatar-stepper-btn--prev';
     prev.textContent = 'Prev';
     prev.disabled = !!config.disabled;
     prev.addEventListener('click', function () {
@@ -222,7 +225,7 @@
 
     var next = document.createElement('button');
     next.type = 'button';
-    next.className = 'sk-avatar-mini-btn';
+    next.className = 'sk-avatar-mini-btn sk-avatar-stepper-btn--next';
     next.textContent = 'Next';
     next.disabled = !!config.disabled;
     next.addEventListener('click', function () {
@@ -233,6 +236,36 @@
       config.onChange(config.value + config.step);
     });
 
+    if (useSlider) {
+      var range = document.createElement('input');
+      range.type = 'range';
+      range.className = 'sk-avatar-stepper-range';
+      range.min = String(sliderMin);
+      range.max = String(sliderMax);
+      range.step = String(config.step || 1);
+      range.value = String(config.value);
+
+      range.addEventListener('input', function () {
+        value.textContent = config.format ? config.format(Number(range.value)) : String(range.value);
+      });
+
+      range.addEventListener('change', function () {
+        var nextValue = Number(range.value);
+        var setAbsolute = config.onEdit || config.onChange;
+        if (setAbsolute) setAbsolute(nextValue);
+      });
+
+      row.appendChild(label);
+      row.appendChild(valueWrap);
+      row.appendChild(prev);
+      row.appendChild(range);
+      row.appendChild(next);
+      parent.appendChild(row);
+      return;
+    }
+
+    var controls = document.createElement('div');
+    controls.className = 'sk-avatar-stepper-controls';
     controls.appendChild(prev);
     controls.appendChild(valueWrap);
     controls.appendChild(next);
@@ -385,6 +418,8 @@
       label: 'Shape First',
       value: appearance.headBlend.shapeFirst,
       step: 1,
+      min: 0,
+      max: 45,
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.headBlend.shapeFirst = clamp(next, 0, 45);
@@ -396,6 +431,8 @@
       label: 'Shape Second',
       value: appearance.headBlend.shapeSecond,
       step: 1,
+      min: 0,
+      max: 45,
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.headBlend.shapeSecond = clamp(next, 0, 45);
@@ -407,6 +444,8 @@
       label: 'Skin First',
       value: appearance.headBlend.skinFirst,
       step: 1,
+      min: 0,
+      max: 45,
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.headBlend.skinFirst = clamp(next, 0, 45);
@@ -418,6 +457,8 @@
       label: 'Skin Second',
       value: appearance.headBlend.skinSecond,
       step: 1,
+      min: 0,
+      max: 45,
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.headBlend.skinSecond = clamp(next, 0, 45);
@@ -443,6 +484,8 @@
       label: 'Hair Style',
       value: appearance.hair.style,
       step: 1,
+      min: 0,
+      max: Math.max(0, state.ui.hairStyleCount - 1),
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.hair.style = clamp(next, 0, Math.max(0, state.ui.hairStyleCount - 1));
@@ -455,6 +498,8 @@
       label: 'Hair Texture',
       value: appearance.hair.texture,
       step: 1,
+      min: 0,
+      max: Math.max(0, state.ui.hairTextureCount - 1),
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.hair.texture = clamp(next, 0, Math.max(0, state.ui.hairTextureCount - 1));
@@ -466,6 +511,8 @@
       label: 'Hair Color',
       value: appearance.hair.color,
       step: 1,
+      min: 0,
+      max: Math.max(0, state.ui.hairColorCount - 1),
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.hair.color = clamp(next, 0, Math.max(0, state.ui.hairColorCount - 1));
@@ -477,6 +524,8 @@
       label: 'Highlight',
       value: appearance.hair.highlight,
       step: 1,
+      min: 0,
+      max: Math.max(0, state.ui.hairColorCount - 1),
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.hair.highlight = clamp(next, 0, Math.max(0, state.ui.hairColorCount - 1));
@@ -488,6 +537,8 @@
       label: 'Eye Color',
       value: appearance.eyeColor,
       step: 1,
+      min: 0,
+      max: Math.max(0, state.ui.eyeColorCount - 1),
       onChange: function (next) {
         commitAppearance(function (draft) {
           draft.eyeColor = clamp(next, 0, Math.max(0, state.ui.eyeColorCount - 1));
@@ -502,6 +553,8 @@
         label: formatLabel(overlayMeta.key) + ' Style',
         value: appearance.headOverlays[overlayMeta.key].style,
         step: 1,
+        min: 0,
+        max: Math.max(0, overlayMeta.styleCount - 1),
         onChange: function (next) {
           commitAppearance(function (draft) {
             draft.headOverlays[overlayMeta.key].style = clamp(next, 0, Math.max(0, overlayMeta.styleCount - 1));
