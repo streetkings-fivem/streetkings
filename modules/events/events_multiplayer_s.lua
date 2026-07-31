@@ -583,7 +583,7 @@ local function finalizeRaceResults(lobby)
         if didNotFinish and cfg.MULTIPLAYER_FORFEIT_COST > 0 then
             local document = SKSaves.getDocument(src)
             if document then
-                document.economy.cash = document.economy.cash - cfg.MULTIPLAYER_FORFEIT_COST
+                document.economy.cash = math.max(0, document.economy.cash - cfg.MULTIPLAYER_FORFEIT_COST)
                 SKSaves.write(src, 'economy.cash', document.economy.cash)
             end
         end
