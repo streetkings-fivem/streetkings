@@ -522,6 +522,54 @@
   gap: 0.55rem;
 }
 
+.phone-vehicles-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  transition: border-color var(--sk-ease);
+}
+
+.phone-vehicles-search-wrap:focus-within {
+  border-color: rgba(255, 209, 71, 0.45);
+}
+
+.phone-vehicles-search-icon {
+  width: 0.95rem;
+  height: 0.95rem;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.phone-vehicles-search {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--sk-text-primary);
+  font-family: var(--sk-font-ui);
+  font-size: 0.82rem;
+  letter-spacing: 0.03em;
+}
+
+.phone-vehicles-search::placeholder {
+  color: rgba(255, 255, 255, 0.38);
+}
+
+.phone-vehicles-search-empty {
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  color: var(--sk-text-soft);
+}
+
+.phone-vehicles-mod-card.is-filtered-out,
+.phone-vehicles-section.is-filtered-out {
+  display: none;
+}
+
 .phone-vehicles-compact-grid {
   grid-template-columns: minmax(0, 1fr);
   gap: 0.45rem;
