@@ -30,7 +30,9 @@ local NEAR_MISS_REFILL = 0.45
 local DRIFT_REFILL_PER_SEC = 0.35
 local ONCOMING_REFILL_PER_SEC = 0.22
 local NEAR_MISS_COOLDOWN_MS = 2200
+local NEAR_MISS_DISTANCE = 4.2
 local RECHARGE_SCAN_INTERVAL_MS = 120
+local RECHARGE_SCAN_RADIUS = 25.0
 local BACKFIRE_INTERVAL_MS = 85
 local BACKFIRE_SCALE = 1.25
 local BACKFIRE_ASSET = 'core'
@@ -178,32 +180,31 @@ local function isTrafficVehicle(veh, other)
 end
 
 ---@param veh integer
----@param other integer
+---@param otherPos vector3
 ---@return boolean
-local function isOtherVehicleAhead(veh, other)
-    local otherPos = GetEntityCoords(other)
+local function isOtherVehicleAhead(veh, otherPos)
     local localPos = GetOffsetFromEntityGivenWorldCoords(veh, otherPos.x, otherPos.y, otherPos.z)
     return localPos.y > -2.0 and localPos.y < 22.0
 end
 
 ---@param veh integer
+---@param nearby { vehicle: integer, coords: vector3 }[]
+---@param pos vector3
+---@param now integer
+---@param speed number
 ---@return number
-local function getNearMissRecharge(veh)
-    local now = GetGameTimer()
-    local pos = GetEntityCoords(veh)
-    local speed = GetEntitySpeed(veh)
+local function getNearMissRecharge(veh, nearby, pos, now, speed)
     if speed < 18.0 then return 0.0 end
 
-    for _, other in ipairs(GetGamePool('CVehicle')) do
-        if isTrafficVehicle(veh, other) and isOtherVehicleAhead(veh, other) then
-            local otherPos = GetEntityCoords(other)
-            local distance = #(pos - otherPos)
-            if distance <= 4.2 and math.abs(speed - GetEntitySpeed(other)) >= 8.0 then
-                local cooldownUntil = nearMissCooldowns[other] or 0
-                if now >= cooldownUntil then
-                    nearMissCooldowns[other] = now + NEAR_MISS_COOLDOWN_MS
-                    return NEAR_MISS_REFILL
-                end
+    for i = 1, #nearby do
+        local entry = nearby[i]
+        local other = entry.vehicle
+        local otherPos = entry.coords
+        if #(pos - otherPos) <= NEAR_MISS_DISTANCE and isOtherVehicleAhead(veh, otherPos) and isTrafficVehicle(veh, other) and math.abs(speed - GetEntitySpeed(other)) >= 8.0 then
+            local cooldownUntil = nearMissCooldowns[other] or 0
+            if now >= cooldownUntil then
+                nearMissCooldowns[other] = now + NEAR_MISS_COOLDOWN_MS
+                return NEAR_MISS_REFILL
             end
         end
     end
@@ -212,14 +213,17 @@ local function getNearMissRecharge(veh)
 end
 
 ---@param veh integer
+---@param nearby { vehicle: integer, coords: vector3 }[]
+---@param speed number
 ---@return boolean
-local function isInOncomingTraffic(veh)
-    local speed = GetEntitySpeed(veh)
+local function isInOncomingTraffic(veh, nearby, speed)
     if speed < 16.0 then return false end
 
     local forward = GetEntityForwardVector(veh)
-    for _, other in ipairs(GetGamePool('CVehicle')) do
-        if isTrafficVehicle(veh, other) and isOtherVehicleAhead(veh, other) then
+    for i = 1, #nearby do
+        local entry = nearby[i]
+        local other = entry.vehicle
+        if isOtherVehicleAhead(veh, entry.coords) and isTrafficVehicle(veh, other) then
             local otherForward = GetEntityForwardVector(other)
             local dot = forward.x * otherForward.x + forward.y * otherForward.y + forward.z * otherForward.z
             if dot < -0.55 then
@@ -261,10 +265,14 @@ local function updateRecharge(frameSeconds)
 
     if now - lastScanAt >= RECHARGE_SCAN_INTERVAL_MS then
         lastScanAt = now
-        if isInOncomingTraffic(vehicle) then
+        local pos = GetEntityCoords(vehicle)
+        local speed = GetEntitySpeed(vehicle)
+        local nearby = lib.getNearbyVehicles(pos, RECHARGE_SCAN_RADIUS, false)
+
+        if isInOncomingTraffic(vehicle, nearby, speed) then
             oncomingActiveUntil = now + RECHARGE_SCAN_INTERVAL_MS + 50
         end
-        amount = amount + getNearMissRecharge(vehicle)
+        amount = amount + getNearMissRecharge(vehicle, nearby, pos, now, speed)
     end
 
     if amount > 0 then
