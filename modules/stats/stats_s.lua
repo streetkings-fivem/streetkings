@@ -76,7 +76,7 @@ lib.callback.register('streetkings:stats:getData', function(source)
     local level = progression.level or 1
     local xp = progression.playerXp or 0
     local nextLevelXp = SKProgression.getXpForNextLevel(level, SKProgression.PLAYER_LEVEL_THRESHOLDS, SKProgression.PLAYER_MAX_LEVEL)
-    local currentLevelXp = level > 1 and SKProgression.PLAYER_LEVEL_THRESHOLDS[level - 1] or 0
+    local currentLevelXp = SKProgression.PLAYER_LEVEL_THRESHOLDS[level] or 0
     local xpInLevel = xp - currentLevelXp
     local xpNeeded = nextLevelXp and (nextLevelXp - currentLevelXp) or 1
     local nextLevel = level < SKProgression.PLAYER_MAX_LEVEL and level + 1 or nil
