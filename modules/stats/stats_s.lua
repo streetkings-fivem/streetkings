@@ -150,12 +150,14 @@ end)
 exports('IncrementStat', function(source, key, amount)
     if type(key) ~= 'string' then return false end
     if amount ~= nil and type(amount) ~= 'number' then return false end
+    if not VALID_KEYS[key] then return false end
     if not SKSaves.hasActiveSave(source) then return false end
     SKStats.increment(source, key, amount)
     return true
 end)
 exports('SetStatMax', function(source, key, value)
     if type(key) ~= 'string' or type(value) ~= 'number' then return false end
+    if not VALID_KEYS[key] then return false end
     if not SKSaves.hasActiveSave(source) then return false end
     SKStats.setMax(source, key, value)
     return true
