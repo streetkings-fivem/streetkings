@@ -495,9 +495,9 @@ exports('RecordActivityBest', function(source, activityId, score, scoreType)
     local doc = SKSaves.getDocument(source)
     if not doc then return false end
     local progression = doc.progression or {}
-    local bests = progression.activityBests or {}
+    local bests = progression.bestActivityScores or {}
     local isFirst, improved, previous = SKProgression.recordActivityBest(bests, activityId, score, scoreType)
-    progression.activityBests = bests
+    progression.bestActivityScores = bests
     SKSaves.write(source, 'progression', progression)
     return isFirst, improved, previous
 end)
