@@ -23,10 +23,12 @@ function SKC.GetGameState()
 end
 
 ---@param id string
+---@return boolean
 function SKC.SetGameState(id)
     local def = definitions[id]
     if not def then
-        error(('streetkings: unknown game state %q'):format(id))
+        print(('[SK:GameState] unknown game state "%s"'):format(tostring(id)))
+        return false
     end
 
     local prev = currentState
