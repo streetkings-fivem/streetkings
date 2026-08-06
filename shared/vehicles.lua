@@ -4809,11 +4809,11 @@ SKVehicles = {
     polfaction2 = {
         name = 'Outreach Faction',
         brand = 'Willard',
-        model = 'poldorado',
+        model = 'polfaction2',
         price = 81768,
         category = 'emergency',
         type = 'automobile',
-        hash = `poldorado`,
+        hash = `polfaction2`,
     },
     polgauntlet = {
         name = 'Gauntlet Interceptor',
