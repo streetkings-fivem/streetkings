@@ -390,7 +390,9 @@ end
 
 | Export | Params | Returns | Description |
 |--------|--------|---------|-------------|
-| `RegisterStat(key)` | stat key string | `boolean` | Register a custom stat key at startup so `IncrementStat`/`SetStatMax` accept it. Returns `false` if the key already exists or is invalid. |
+| `RegisterStat(key)` | stat key string | `boolean` | Register a persisted custom stat without adding it to the phone UI. Existing signature retained for compatibility. |
+| `RegisterStat(definition)` | `{ category, id, label, categoryIcon?, icon?, format? }` | `boolean` | Register a persisted custom stat and dynamically add it to the phone Stats app. |
+| `RegisterStat(category, id, label, options?)` | category, stat id, label, options | `boolean` | Positional form of dynamic phone stat registration. |
 | `IncrementStat(source, key, amount?)` | server id, stat key, amount (default 1) | `boolean` | Increment a numeric stat. Returns `false` if invalid key, no save, or bad types. |
 | `SetStatMax(source, key, value)` | server id, stat key, value | `boolean` | Set a stat only if the new value is higher. Returns `false` if invalid key, no save, or bad types. |
 
@@ -415,10 +417,26 @@ end
 
 Add-on resources can register their own stat keys with `RegisterStat` and then use them with `IncrementStat`/`SetStatMax`. Custom stats are persisted alongside built-in stats in the player's save.
 
+Dynamic phone rows support the formats `integer`, `cash`, `miles`, `mph`, and `xp`. Existing category names such as `Activities` append to that category; a new category name creates a new section. Icons use Font Awesome class names.
+
 ```lua
 -- register custom stats once at resource start
-exports['streetkings']:RegisterStat('deliveriesCompleted')
 exports['streetkings']:RegisterStat('longestDeliveryStreak')
+
+-- register a persisted stat and show it in the phone Stats app
+exports['streetkings']:RegisterStat({
+    category = 'Activities',
+    id = 'deliveriesCompleted',
+    label = 'Deliveries Completed',
+    icon = 'fa-box',
+    format = 'integer',
+})
+
+-- positional form
+exports['streetkings']:RegisterStat('Driving', 'bestDriftMph', 'Best Drift Speed', {
+    icon = 'fa-gauge-high',
+    format = 'mph',
+})
 
 -- increment after a delivery
 exports['streetkings']:IncrementStat(source, 'deliveriesCompleted', 1)

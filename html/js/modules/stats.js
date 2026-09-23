@@ -23,6 +23,20 @@
     return Math.floor(n).toLocaleString('en-US') + ' XP';
   }
 
+  var FORMATTERS = {
+    integer: fmtInt,
+    cash: fmtCash,
+    miles: fmtMiles,
+    mph: fmtSpeed,
+    xp: fmtXp,
+  };
+
+  function escapeHtml(value) {
+    var element = document.createElement('span');
+    element.textContent = value == null ? '' : String(value);
+    return element.innerHTML;
+  }
+
   var STAT_CATEGORIES = [
     {
       name: 'Driving',
@@ -66,6 +80,50 @@
     },
   ];
 
+  function buildCategories(dynamicStats) {
+    var categories = [];
+    var categoryLookup = {};
+
+    for (var i = 0; i < STAT_CATEGORIES.length; i++) {
+      var builtIn = STAT_CATEGORIES[i];
+      var category = {
+        name: builtIn.name,
+        icon: builtIn.icon,
+        stats: builtIn.stats.slice(),
+      };
+      categories.push(category);
+      categoryLookup[category.name.toLowerCase()] = category;
+    }
+
+    if (!Array.isArray(dynamicStats)) return categories;
+
+    for (var d = 0; d < dynamicStats.length; d++) {
+      var definition = dynamicStats[d];
+      if (!definition || !definition.key || !definition.category || !definition.label) continue;
+
+      var categoryKey = String(definition.category).toLowerCase();
+      var target = categoryLookup[categoryKey];
+      if (!target) {
+        target = {
+          name: definition.category,
+          icon: definition.categoryIcon || 'fa-chart-column',
+          stats: [],
+        };
+        categories.push(target);
+        categoryLookup[categoryKey] = target;
+      }
+
+      target.stats.push({
+        key: definition.key,
+        label: definition.label,
+        icon: definition.icon || 'fa-chart-simple',
+        fmt: FORMATTERS[definition.format] || fmtInt,
+      });
+    }
+
+    return categories;
+  }
+
   function buildStatsHtml(data) {
     var stats = data.stats || {};
     var pct = data.xpNeeded > 0 ? Math.min(100, Math.floor((data.xpInLevel / data.xpNeeded) * 100)) : 100;
@@ -97,21 +155,23 @@
     stats.vehiclesOwned = data.vehiclesOwned || 0;
     stats.propertiesOwned = data.propertiesOwned || 0;
 
+    var categories = buildCategories(data.dynamicStats);
+
     html += '<div class="phone-stats-body">';
-    for (var c = 0; c < STAT_CATEGORIES.length; c++) {
-      var cat = STAT_CATEGORIES[c];
+    for (var c = 0; c < categories.length; c++) {
+      var cat = categories[c];
       html += '<div class="phone-stats-category">';
       html +=   '<div class="phone-stats-cat-header">';
-      html +=     '<i class="fa-solid ' + cat.icon + '"></i>';
-      html +=     '<span>' + cat.name + '</span>';
+      html +=     '<i class="fa-solid ' + escapeHtml(cat.icon) + '"></i>';
+      html +=     '<span>' + escapeHtml(cat.name) + '</span>';
       html +=   '</div>';
       for (var s = 0; s < cat.stats.length; s++) {
         var def = cat.stats[s];
         var val = stats[def.key] != null ? stats[def.key] : 0;
         html += '<div class="phone-stats-row">';
         html +=   '<div class="phone-stats-row-left">';
-        html +=     '<i class="fa-solid ' + def.icon + '"></i>';
-        html +=     '<span>' + def.label + '</span>';
+        html +=     '<i class="fa-solid ' + escapeHtml(def.icon) + '"></i>';
+        html +=     '<span>' + escapeHtml(def.label) + '</span>';
         html +=   '</div>';
         html +=   '<span class="phone-stats-row-value">' + def.fmt(val) + '</span>';
         html += '</div>';
