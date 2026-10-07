@@ -59,13 +59,34 @@
     });
   }
 
+  function makeBackChevron() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('class', 'phone-app-back-chevron');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    svg.setAttribute('fill', 'none');
+    svg.setAttribute('stroke', 'currentColor');
+    svg.setAttribute('stroke-width', '2.5');
+    svg.setAttribute('stroke-linecap', 'round');
+    svg.setAttribute('stroke-linejoin', 'round');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', 'm15 18-6-6 6-6');
+    svg.appendChild(path);
+    return svg;
+  }
+
   function renderBackButtons() {
     var buttons = elPhone.querySelectorAll('.phone-app-back');
     for (var i = 0; i < buttons.length; i++) {
       if (controllerEnabled) {
         buttons[i].innerHTML = controllerGlyphs.getHtml('B', 'phone-app-back-icon') + '<span>Back</span>';
       } else {
-        buttons[i].textContent = '← Back';
+        var btn = buttons[i];
+        while (btn.firstChild) btn.removeChild(btn.firstChild);
+        btn.appendChild(makeBackChevron());
+        var label = document.createElement('span');
+        label.textContent = 'Back';
+        btn.appendChild(label);
       }
     }
   }
